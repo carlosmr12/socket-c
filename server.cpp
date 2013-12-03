@@ -1,4 +1,25 @@
-//Aplicação que recebe o tempo de ordenação das aplicações clientes
+ /*
+  * Checking efficiency of openMp application over a non-openMp application
+  * Universidade Estadual de Montes Claros - UNIMONTES 
+  * Departamento de Ciências da Computação - DCC 
+  * Curso de Sistemas de Informação - 7 Período
+  *                 
+  * Disciplinas: Cliente/Servidor e Sistemas Distribuídos I
+  * Prof.        Rafael Moreno 
+  * Acadêmicos:       
+  *     Carlos Rodrigues
+  *     Déborah Soares
+  *     Fábio Vinícius
+  *     Lino José
+  *     Renan Teixeira
+  *
+*/
+
+/*
+ *
+ *  Server application 
+ *
+ */
 
 #include <fcntl.h>
 #include <string.h>
@@ -15,10 +36,14 @@
 
 using namespace std;
 
-//Função que trata dos clientes
-void* trataSocket(void* lp){
+/*
+ *
+ *  handleSocket Function
+ *
+ * */
+void* handleSocket(void* lp){
     	
-    	int *csock = (int*)lp;
+    int *csock = (int*)lp;
 	char buffer[1024];
 	int buffer_len = 1024;
 	int bytecount;
@@ -33,6 +58,11 @@ void* trataSocket(void* lp){
 	return 0;
 }
 
+/*
+ *
+ *  Main Function
+ *
+ * */
 int main(int argv, char** argc){
 
 	int host_port= 1101;
@@ -65,22 +95,21 @@ int main(int argv, char** argc){
 	
 
 	addr_size = sizeof(sockaddr_in);
-	cout <<"Esperando aplicacao cliente"<< endl;
+	cout <<"A aplicacao SERVER foi inicialiazada"<< endl;
+	cout <<"Aguardando mensagens das aplicaoes Clientes..."<< endl;
 	
 	while(true){
 		csock = (int*)malloc(sizeof(int));
 		
 		if((*csock = accept( hsock, (sockaddr*)&sadr, &addr_size))!= -1){
-			pthread_create(&thread_id,0,&trataSocket, (void*)csock );
+			pthread_create(&thread_id,0,&handleSocket, (void*)csock );
 			pthread_detach(thread_id);
 		}
 		else{
-			cout <<"Erro ao aceitar conexao" << errno <<endl;
+			cout <<"Error. Connection Refused." << errno <<endl;
 		}
 	}
 	
 	FINISH:
 	return 0;
 }
-
-

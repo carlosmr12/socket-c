@@ -1,4 +1,25 @@
-//Cliente que não usa OpemMp para Ordenação
+ /*
+  * Checking efficiency of openMp application over a non-openMp application
+  * Universidade Estadual de Montes Claros - UNIMONTES 
+  * Departamento de Ciências da Computação - DCC 
+  * Curso de Sistemas de Informação - 7 Período
+  *                 
+  * Disciplinas: Cliente/Servidor e Sistemas Distribuídos I
+  * Prof.        Rafael Moreno 
+  * Acadêmicos:       
+  *     Carlos Rodrigues
+  *     Déborah Soares
+  *     Fábio Vinícius
+  *     Lino José
+  *     Renan Teixeira
+  *
+*/
+
+/*
+ *
+ *  Client application with no use of OpenMp
+ *
+ */
 #include <iostream>
 #include <string>
 #include <vector>
@@ -16,6 +37,11 @@
 
 using namespace std;
 
+/*
+ *
+ *  connectServer function
+ *
+ * */
 void connectServer(char *t){
 	
 	struct sockaddr_in remoteSocketInfo;
@@ -38,43 +64,40 @@ void connectServer(char *t){
 	remoteSocketInfo.sin_port = htons((u_short)portNumber);      
 	connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in));
 	
-	strcpy(buf,"Tempo Aplicacao Normal:");
+	strcpy(buf,"Tempo da ordenacao mergeSort sem o uso do OpenMP:\t");
 	strcat(buf,aux);
-	strcat(buf,"segundos");
+	strcat(buf," segundos");
 	
 	send(socketHandle, buf, strlen(buf)+1, 0);
-		
-	
 }
 
-vector<long> merge(const vector<long>& left, const vector<long>& right)
-{
+/*
+ *
+ *  Merge Function to merge the right and left side of the vector
+ *
+ * */
+vector<long> merge(const vector<long>& left, const vector<long>& right){
     vector<long> result;
     unsigned left_it = 0, right_it = 0;
 
-    while(left_it < left.size() && right_it < right.size())
-    {
-        if(left[left_it] < right[right_it])
-        {
+    while(left_it < left.size() && right_it < right.size()){
+        if(left[left_it] < right[right_it]){
             result.push_back(left[left_it]);
             left_it++;
         }
-        else					
-        {
+        else{
             result.push_back(right[right_it]);
             right_it++;
         }
     }
 
-    // Push the remaining data from both vectors onto the resultant
-    while(left_it < left.size())
-    {
+    //  Add the data from both vectors onto a result vector
+    while(left_it < left.size()){
         result.push_back(left[left_it]);
         left_it++;
     }
 
-    while(right_it < right.size())
-    {
+    while(right_it < right.size()){
         result.push_back(right[right_it]);
         right_it++;
     }
@@ -82,32 +105,35 @@ vector<long> merge(const vector<long>& left, const vector<long>& right)
     return result;
 }
 
-vector<long> mergesort(vector<long>& vec)
-{
-    // Termination condition: List is completely sorted if it
-    // only contains a single element.
-    if(vec.size() == 1)
-    {
+/*
+ *  MergeSort function to sort elements
+ *
+ * */
+vector<long> mergesort(vector<long>& vec){
+    // Terminate if the list contains only a single element, which means that the list is completely sorted
+    if(vec.size() == 1){
         return vec;
     }
 
-    // Determine the location of the middle element in the vector
+    // Get the location of the middle element
     std::vector<long>::iterator middle = vec.begin() + (vec.size() / 2);
 
     vector<long> left(vec.begin(), middle);
     vector<long> right(middle, vec.end());
 
-    // Perform a merge sort on the two smaller vectors
-
+    // Perform the merge sort on the two sides of the vector separately
     left = mergesort(left);
     right = mergesort(right);
     
-
+    // Merge the two sides of the vector
     return merge(left, right);
 }
 
-int main()
-{
+/*
+ *  Main Function
+ *
+ * */
+int main(){
 	float t1, t2;
 	char tfinal[10];
 
@@ -121,10 +147,9 @@ int main()
 	
 	t2 = (float) clock();	
 	
-	sprintf(tfinal,"%.3f",((t2 - t1)/ CLOCKS_PER_SEC));
+	sprintf(tfinal,"%.5f",((t2 - t1)/ CLOCKS_PER_SEC));
 	
 	connectServer(tfinal);
 	
 	return 0;
-  
 }

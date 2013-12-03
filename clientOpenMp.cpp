@@ -1,4 +1,25 @@
-//Cliente que usa OpemMp para Ordenação
+ /*
+  * Checking efficiency of openMp application over a non-openMp application
+  * Universidade Estadual de Montes Claros - UNIMONTES 
+  * Departamento de Ciências da Computação - DCC 
+  * Curso de Sistemas de Informação - 7 Período
+  *                 
+  * Disciplinas: Cliente/Servidor e Sistemas Distribuídos I
+  * Prof.        Rafael Moreno 
+  * Acadêmicos:       
+  *     Carlos Rodrigues
+  *     Déborah Soares
+  *     Fábio Vinícius
+  *     Lino José
+  *     Renan Teixeira
+  *
+*/
+
+/*
+ *
+ *  Client application with the use of OpenMp
+ *
+ */
 #include <iostream>
 #include <string>
 #include <vector>
@@ -18,8 +39,11 @@
 using namespace std;
 
 
-//Função Cliente Socket que conecta ao server e envia o tempo de ordenação
-
+/*
+ *
+ *  connectServer function
+ *
+ * */
 void connectServer(char *t){
 	
 	struct sockaddr_in remoteSocketInfo;
@@ -42,46 +66,41 @@ void connectServer(char *t){
 	remoteSocketInfo.sin_port = htons((u_short)portNumber);      
 	connect(socketHandle, (struct sockaddr *)&remoteSocketInfo, sizeof(sockaddr_in));
 	
-	strcpy(buf,"Tempo Aplicacao OpenMP:");
+	strcpy(buf,"Tempo da ordenacao mergeSort com o uso do OpenMP:\t");
 	strcat(buf,aux);
-	strcat(buf,"segundos");
+	strcat(buf," segundos");
 	
 	send(socketHandle, buf, strlen(buf)+1, 0);
-		
-	
 }
 
 
-//Função de Ordenação usando MargeSort
-
-vector<long> merge(const vector<long>& left, const vector<long>& right)
-{
+/*
+ *
+ *  Merge Function to merge the right and left side of the vector
+ *
+ * */
+vector<long> merge(const vector<long>& left, const vector<long>& right){
     vector<long> result;
     unsigned left_it = 0, right_it = 0;
 
-    while(left_it < left.size() && right_it < right.size())
-    {
-        if(left[left_it] < right[right_it])
-        {
+    while(left_it < left.size() && right_it < right.size()){
+        if(left[left_it] < right[right_it]){
             result.push_back(left[left_it]);
             left_it++;
         }
-        else					
-        {
+        else{
             result.push_back(right[right_it]);
             right_it++;
         }
     }
 
-    // Push the remaining data from both vectors onto the resultant
-    while(left_it < left.size())
-    {
+    //  Add the data from both vectors onto a result vector
+    while(left_it < left.size()){
         result.push_back(left[left_it]);
         left_it++;
     }
 
-    while(right_it < right.size())
-    {
+    while(right_it < right.size()){
         result.push_back(right[right_it]);
         right_it++;
     }
@@ -89,26 +108,24 @@ vector<long> merge(const vector<long>& left, const vector<long>& right)
     return result;
 }
 
-vector<long> mergesort(vector<long>& vec, int threads)
-{
-    // Termination condition: List is completely sorted if it
-    // only contains a single element.
-    if(vec.size() == 1)
-    {
+/*
+ *  MergeSort function to sort elements using threads 
+ *
+ * */
+vector<long> mergesort(vector<long>& vec, int threads){
+    // Terminate if the list contains only a single element, which means that the list is completely sorted
+    if(vec.size() == 1){
         return vec;
     }
 
-    // Determine the location of the middle element in the vector
+    // Get the location of the middle element
     std::vector<long>::iterator middle = vec.begin() + (vec.size() / 2);
 
     vector<long> left(vec.begin(), middle);
     vector<long> right(middle, vec.end());
 
-    // Perform a merge sort on the two smaller vectors
-    
-    //Parte do código que irá executar de forma paralela
-    if (threads > 1)
-    {
+    // Perform the merge sort on the two sides of the vector separately
+    if (threads > 1){
       #pragma omp parallel sections
       {
         #pragma omp section
@@ -121,36 +138,37 @@ vector<long> mergesort(vector<long>& vec, int threads)
         }
       }
     }
-    else
-    {
+    else{
       left = mergesort(left, 1);
       right = mergesort(right, 1);
     }
 
+    // Merge the two sides of the vector
     return merge(left, right);
 }
 
-//Fim da Função de Ordenação
-
-int main()
-{
+/*
+ *  Main Function
+ *
+ * */
+int main(){
 	float t1, t2;
 	char tfinal[10];
 
 	vector<long> v(1000000);
-	for (long i=0; i<1000000; ++i)// Cria o vetor a ser Ordenado
-	v[i] = (i * i) % 1000000;
 
-	t1 = (float) clock(); // Coleta o tempo antes da ordenação
+	for (long i=0; i<1000000; ++i)
+        v[i] = (i * i) % 1000000;
 
-	v = mergesort(v, 4); // Chama função de Ordenação
+	t1 = (float) clock();
+
+	v = mergesort(v, 4); 
 	
-	t2 = (float) clock();	// Coleta tempo após função de ordenação
+	t2 = (float) clock();
 	
-	sprintf(tfinal,"%.3f",((t2 - t1)/ CLOCKS_PER_SEC)); // Calcula o tempo gasto para a ordenação
+	sprintf(tfinal,"%.5f",((t2 - t1)/ CLOCKS_PER_SEC));
 	
-	connectServer(tfinal); // Chamada da Função para enviar o tempo de ordenação
+	connectServer(tfinal);
 	
 	return 0;
-  
 }
